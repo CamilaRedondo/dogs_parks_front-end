@@ -20,6 +20,7 @@ Clone este repositório para o seu ambiente local:
 ```bash
 git clone https://github.com/seu-usuario/seu-repositorio.git
 cd seu-repositorio
+```
 
 ### 2. Configurar o Servidor Backend 
 
