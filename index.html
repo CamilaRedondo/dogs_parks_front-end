@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div id="map-container">
+        <div id="map"></div>
+        <div id="map-container-menu">
+            <button type="button" class="btn map-menu-button" data-bs-target="#addParkModal" data-bs-toggle="modal" onclick="registerPark()">
+                <i class="bi bi-plus-square fs-5"></i>
+            </button>
+            <button type="button" class="btn map-menu-button" onclick="listParks()">
+                <i class="bi bi-card-list fs-4"></i>
+            </button>
+            <button type="button" class="btn map-menu-button" onclick="filterParks()">
+                <i class="bi bi-funnel fs-5"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Adicionando parque -->
+    <form id="park-form">
+        <!-- Modal 1 -->
+        <div class="modal fade" id="addParkModal" aria-labelledby="addParkModalLabel" tabindex="-1">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addParkModalLabel">Adicione informações sobre o parque</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label for="parkName" class="form-label">Nome do parque</label>
+                  <input type="text" class="form-control" id="parkName" name="parkName" required />
+                </div>
+                <h6>Endereço</h6>
+                <div class="mb-3">
+                  <label for="estadoSelect" class="form-label">Estado</label>
+                  <select id="estadoSelect" name="estado" class="form-select" onchange="loadCityOptions()" required>
+                    <option value="">Selecione o estado</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="cidadeSelect" class="form-label">Cidade</label>
+                  <select id="cidadeSelect" name="cidade" class="form-select" required>
+                    <option value="">Selecione a cidade</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="ruaInput" class="form-label">Rua</label>
+                  <input type="text" class="form-control" id="ruaInput" name="rua" required/>
+                </div>
+                <div class="mb-3">
+                  <label for="numeroInput" class="form-label">Número</label>
+                  <input type="number" class="form-control" id="numeroInput" name="numero" />
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#addParkModal2" disabled>Próximo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    
+        <!-- Modal 2 -->
+        <div class="modal fade" id="addParkModal2" aria-labelledby="addParkModalLabel2" tabindex="-1">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addParkModalLabel2">Selecione as características do parque</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+              </div>
+              <div class="modal-body">
+                <h6>Estrutura</h6>
+                <div id="estrutura-options"></div>
+                <br>
+                <h6>Finalidade</h6>
+                <div id="finalidade-options"></div>
+                <br>
+                <h6>Acesso</h6>
+                <div id="acesso-options"></div>
+              </div>
+              <div class="modal-footer d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary" data-bs-target="#addParkModal" data-bs-toggle="modal">Voltar</button>
+                <button type="button" class="btn btn-primary" onclick="sendFunction()" disabled>Salvar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+    </form>
+
+    <!-- Filtrando parque -->
+
+    <script src="./script.js"></script>
+</body>
+</html>
