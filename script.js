@@ -105,7 +105,54 @@ async function loadCheckboxOptions() {
   }
 }
 
-// == Carregar opções de localização ==
+async function fetchAllParks() {
+  try {
+    const response = await fetch('http://127.0.0.1:5000/parques/');
+    console.log(response)
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar parques: ${response.status}`);
+    }
+
+    allParks = await response.json();
+    console.log('Parques registrados:', allParks);
+
+    if (window.parksLayer) {
+      map.removeLayer(window.parksLayer);
+    }
+
+    window.parksLayer = L.layerGroup().addTo(map);
+
+    allParks.forEach(park => {
+      if (park.lat && park.long) {
+        const marker = L.marker([park.lat, park.long]).addTo(window.parksLayer);
+
+        marker.bindPopup(`
+          <b>${park.name}</b><br>
+          ${park.street}, ${park.city} - ${park.state}<br>
+          <i>${park.access_description}</i><br>
+          Estruturas: ${park.structures}<br>
+          Finalidades: ${park.purposes}
+        `);
+
+        park._marker = marker;
+      }
+    });
+
+    const validParks = allParks.filter(p => p.lat && p.long);
+    if (validParks.length > 0) {
+      const group = L.featureGroup(validParks.map(p => p._marker));
+      map.fitBounds(group.getBounds());
+    }
+
+  } catch (error) {
+    console.error('Erro ao buscar os parques:', error);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  fetchAllParks();
+});
+
 async function getStateFromAPI() {
     return fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados').then(response => {
         if (!response.ok) {
