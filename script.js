@@ -50,8 +50,114 @@ async function registerPark() {
     await loadStateOptions()
 }
 
-function listParks() {
-  alert("Listar parques");
+function renderParks() {
+  const parksList = document.getElementById("parksList");
+  parksList.innerHTML = "";
+
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const parksToShow = allParks.slice(start, end);
+
+  parksToShow.forEach((park) => {
+    const col = document.createElement("div");
+    col.className = "col-12 col-lg-6 mb-3";
+
+    col.innerHTML = `
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">${park.name}</h5>
+          <p class="card-text mb-1"><strong>Endereço:</strong> ${park.street}, ${park.city} - ${park.state}</p>
+          <p class="card-text mb-1"><strong>Finalidade:</strong> ${park.purposes || "-"}</p>
+          <p class="card-text mb-1"><strong>Estrutura:</strong> ${park.structures || "-"}</p>
+          <p class="card-text mb-1"><strong>Acesso:</strong> ${park.access_name || "-"} (${park.access_description || ""})</p>
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+          <button class="btn btn-sm btn-outline-primary edit-btn"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger delete-btn"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+    `;
+
+    const editBtn = col.querySelector(".edit-btn");
+    editBtn.addEventListener("click", () => {
+      editPark(park.id);
+    });
+
+    const deleteBtn = col.querySelector(".delete-btn");
+    deleteBtn.addEventListener("click", () => {
+      deletePark(park.id);
+    });
+
+    parksList.appendChild(col);
+  });
+}
+
+function renderPagination() {
+  const pagination = document.getElementById("pagination");
+  pagination.innerHTML = "";
+
+  const totalPages = Math.ceil(allParks.length / itemsPerPage);
+
+  // Prev
+  const prevLi = document.createElement("li");
+  prevLi.classList.add("page-item");
+  if (currentPage === 1) prevLi.classList.add("disabled");
+  prevLi.innerHTML = `<a class="page-link" href="#">Anterior</a>`;
+  prevLi.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      renderParks();
+      renderPagination();
+    }
+  });
+  pagination.appendChild(prevLi);
+
+  for (let i = 1; i <= totalPages; i++) {
+    const li = document.createElement("li");
+    li.classList.add("page-item");
+    if (i === currentPage) li.classList.add("active");
+    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+    li.addEventListener("click", () => {
+      currentPage = i;
+      renderParks();
+      renderPagination();
+    });
+    pagination.appendChild(li);
+  }
+
+  const nextLi = document.createElement("li");
+  nextLi.classList.add("page-item");
+  if (currentPage === totalPages) nextLi.classList.add("disabled");
+  nextLi.innerHTML = `<a class="page-link" href="#">Próximo</a>`;
+  nextLi.addEventListener("click", () => {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderParks();
+      renderPagination();
+    }
+  });
+  pagination.appendChild(nextLi);
+}
+
+async function listParks() {
+  try {
+    const response = await fetch('http://127.0.0.1:5000/parques/');
+    if (!response.ok) {
+      throw new Error(`Erro ao buscar parques: ${response.status}`);
+    }
+
+    allParks = await response.json();
+    currentPage = 1;
+    const modal = new bootstrap.Modal(document.getElementById("listParksModal"));
+    modal.show();
+
+    renderParks();
+    renderPagination();
+    
+  } catch (err) {
+    console.error(err);
+    alert("Não foi possível carregar os parques.");
+  }
 }
 
 function filterParks() {
