@@ -11,43 +11,9 @@ const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
-// const marker = L.marker([51.5, -0.09]).addTo(map)
-//   .bindPopup('<b>Hello world!</b><br />I am a popup.').openPopup();
-
-// const circle = L.circle([51.508, -0.11], {
-//   color: 'red',
-//   fillColor: '#f03',
-//   fillOpacity: 0.5,
-//   radius: 500
-// }).addTo(map).bindPopup('I am a circle.');
-
-// const polygon = L.polygon([
-//   [51.509, -0.08],
-//   [51.503, -0.06],
-//   [51.51, -0.047]
-// ]).addTo(map).bindPopup('I am a polygon.');
-
-// const popup = L.popup()
-//   .setLatLng([51.513, -0.09])
-//   .setContent('I am a standalone popup.')
-//   .openOn(map);
-
-// function onMapClick(e) {
-//   popup
-//     .setLatLng(e.latlng)
-//     .setContent(`Você clicou no mapa em ${e.latlng.toString()}`)
-//     .openOn(map);
-// }
-
-// map.on('click', onMapClick);
-
-// ---------------------------------------------------------------------------------------------------------------------------------------
-
-// === Botões do menu ===
 async function registerPark() {
-    console.log("Abrindo modal para registrar parque");
-    await loadCheckboxOptions()
-    await loadStateOptions()
+  await loadCheckboxOptions()
+  await loadStateOptions()
 }
 
 function renderParks() {
@@ -164,7 +130,6 @@ function filterParks() {
   alert("Filtrar parques");
 }
 
-// === Renderizar checkboxes ===
 function renderCheckboxGroup(containerId, name, options) {
     const container = document.getElementById(containerId);
     if (name !== 'acesso') {
@@ -184,7 +149,6 @@ function renderCheckboxGroup(containerId, name, options) {
     }
 }
 
-// === Carregar opções dos checkboxes da API ===
 async function loadCheckboxOptions() {
   try {
     console.log('Carregando opções...');
@@ -202,13 +166,12 @@ async function loadCheckboxOptions() {
     renderCheckboxGroup("finalidade-options", "finalidade", finalidade);
     renderCheckboxGroup("acesso-options", "acesso", acesso);
 
-    // Adiciona os eventos de validação após o carregamento dinâmico
     const modal2Fields = document.querySelectorAll("#estrutura-options input, #finalidade-options input, #acesso-options input");
     modal2Fields.forEach(field => {
         field.addEventListener("change", validateModal2);
     });
 
-    validateModal2(); // Inicializa a validação após o carregamento
+    validateModal2();
   } catch (err) {
       console.error("Erro ao buscar opções:", err);
   }
@@ -275,7 +238,6 @@ async function getStateFromAPI() {
         });
 }
 
-// == 
 async function loadStateOptions() {
     const response = await getStateFromAPI();
     const container = document.getElementById("estadoSelect");
@@ -297,7 +259,6 @@ async function getCityFromAPI(state) {
         });
 }
 
-// == 
 async function loadCityOptions() {
     const stateContainer = document.getElementById("estadoSelect");
     const selectedState = stateContainer.options[stateContainer.selectedIndex].value
@@ -308,7 +269,6 @@ async function loadCityOptions() {
     `).join('');
 }
 
-// == Geocodificação do endereço
 async function getCoordenatesFromAPI(street, city, state) {
     return fetch(`https://nominatim.openstreetmap.org/search?q=${street},${city},${state}&format=json`).then(response => {
         if (!response.ok) {
@@ -356,8 +316,6 @@ async function sendFunction() {
         alert("Por favor, preencha todos os campos obrigatórios antes de salvar.");
         return;
     }
-
-    //Recuperar as informações do formulário
     
     const parkName = document.getElementById('parkName').value;
 
@@ -373,7 +331,6 @@ async function sendFunction() {
     const purposes = handleCheckbox(document.getElementById('finalidade-options'));
     const access = handleRadioButton(document.getElementById('acesso-options'));
     
-    //Se tudo estiver correto, vamos executar a função que busca as coordenadas com base no endereço:
 
     const responseCoordinates = await getCoordenatesFromAPI(street, selectedCity, selectedState);
     if (!responseCoordinates) {
@@ -398,7 +355,6 @@ async function sendFunction() {
         "purposes": purposes
     }
 
-    // Enviando dados para o servidor
     fetch("http://127.0.0.1:5000/parques/",  {
         method: 'POST',
         headers: {
@@ -411,76 +367,23 @@ async function sendFunction() {
         }
         alert("Parque registrado com sucesso!");
 
-        // Fechar os modais abertos
         const modal1 = bootstrap.Modal.getInstance(document.getElementById('addParkModal'));
         const modal2 = bootstrap.Modal.getInstance(document.getElementById('addParkModal2'));
         if (modal1) modal1.hide();
         if (modal2) modal2.hide();
 
-        // Resetar o formulário
         document.getElementById("park-form").reset();
 
-        //Plot do ponto!
         plotCoordinateOnMap([parseFloat(responseCoordinates[0].lat), parseFloat(responseCoordinates[0].lon)])
         return response.json();
     })
     .then(responseData => {
-        console.log('Success:', responseData); // Handle the successful response
+        console.log('Success:', responseData);
     })
     .catch(error => {
-        console.error('Error:', error); // Handle any errors during the request
+        console.error('Error:', error);
     });
 }
-
-// // === Envio do formulário ===
-// document.addEventListener("DOMContentLoaded", () => {
-//   // Captura do formulário completo dos dois modais
-//   const form = document.getElementById("park-form");
-
-//   form.addEventListener("submit", function (e) {
-//     e.preventDefault();
-//     const formData = new FormData(form);
-
-//     const dados = {};
-//     for (let [key, value] of formData.entries()) {
-//       if (key.endsWith("[]")) {
-//         const realKey = key.slice(0, -2);
-//         if (!dados[realKey]) dados[realKey] = [];
-//         dados[realKey].push(value);
-//       } else {
-//         dados[key] = value;
-//       }
-//     }
-
-//     console.log("Dados do formulário:", dados);
-//     console.log(getCoordenatesFromAPI(dados.rua, dados.city, dados.state));
-
-//     const data = handleForm(dados)
-
-//     fetch("http://127.0.0.1:5000/parques/",  {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json' 
-//         },
-//         body: JSON.stringify(data)
-//     }).then(response => {
-//         if (!response.ok) {
-//             throw new Error(`HTTP error! status: ${response.status}`);
-//         }
-//         alert("Parque registrado com sucesso!");
-//         return response.json();
-//     })
-//     .then(responseData => {
-//         console.log('Success:', responseData); // Handle the successful response
-//     })
-//     .catch(error => {
-//         console.error('Error:', error); // Handle any errors during the request
-//     });
-//     const modal = bootstrap.Modal.getInstance(document.getElementById('addParkModal2'));
-//     modal.hide();
-//     form.reset();
-//   });
-// });
 
 function validateModal1() {
   const modal1Fields = document.querySelectorAll("#addParkModal input[required], #addParkModal select[required]");
@@ -490,7 +393,6 @@ function validateModal1() {
   nextButton.disabled = !allValid;
 }
 
-// Adiciona os eventos de validação ao carregar a página
 document.addEventListener("DOMContentLoaded", () => {
   const modal1Fields = document.querySelectorAll("#addParkModal input[required], #addParkModal select[required]");
   modal1Fields.forEach(field => {
@@ -498,7 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
       field.addEventListener("change", validateModal1);
   });
 
-  validateModal1(); // Inicializa a validação
+  validateModal1();
 });
 
 function validateModal2() {
@@ -507,17 +409,15 @@ function validateModal2() {
   const acessoOptions = document.querySelectorAll("#acesso-options input[type='radio']:checked");
   const saveButton = document.querySelector("#addParkModal2 .btn-primary");
 
-  // Verifica se pelo menos uma opção foi selecionada em cada grupo
   const allValid = estruturaOptions.length > 0 && finalidadeOptions.length > 0 && acessoOptions.length > 0;
   saveButton.disabled = !allValid;
 }
 
-// Adiciona os eventos de validação ao carregar a página
 document.addEventListener("DOMContentLoaded", () => {
   const modal2Fields = document.querySelectorAll("#estrutura-options input, #finalidade-options input, #acesso-options input");
   modal2Fields.forEach(field => {
       field.addEventListener("change", validateModal2);
   });
 
-  validateModal2(); // Inicializa a validação ao carregar a página
+  validateModal2();
 });
