@@ -305,7 +305,7 @@ function handleRadioButton(radioButtonDiv) {
 
 function plotCoordinateOnMap(coordinates) {
     const marker = L.marker(coordinates).addTo(map)
-        .bindPopup('<b>Hello world!</b><br />I am a popup.').openPopup();
+        .bindPopup('<b>Novo parque adicionado.</b><br />Clique para ver as informações.').openPopup();
 }
 
 async function sendFunction() {
