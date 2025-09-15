@@ -440,6 +440,36 @@ document.addEventListener("DOMContentLoaded", () => {
   validateModal2();
 });
 
+async function deletePark(id) {
+  if (!confirm("Tem certeza que deseja excluir este parque?")) return;
+
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/parques/${id}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro ao excluir parque: ${response.status}`);
+    }
+
+    alert("Parque excluído com sucesso!");
+
+    // Atualiza a lista de cards e os markers no mapa
+    await fetchAllParks();
+    listParks(); // atualiza o modal com os cards restantes
+
+  } catch (error) {
+    console.error(error);
+    alert("Não foi possível excluir o parque.");
+  }
+}
+
+const listParksModalEl = document.getElementById('listParksModal');
+listParksModalEl.addEventListener('hidden.bs.modal', () => {
+  document.body.classList.remove('modal-open');
+  if (window.parksLayer) map.invalidateSize();
+});
+
 async function editPark(park) {
   // Fecha modal de listagem
   const listModalEl = document.getElementById('listParksModal');
