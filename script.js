@@ -47,7 +47,7 @@ function renderParks() {
 
     const editBtn = col.querySelector(".edit-btn");
     editBtn.addEventListener("click", () => {
-      editPark(park.id);
+      editPark(park);
     });
 
     const deleteBtn = col.querySelector(".delete-btn");
@@ -319,19 +319,15 @@ async function sendFunction() {
     }
     
     const parkName = document.getElementById('parkName').value;
-
     const stateContainer = document.getElementById("estadoSelect");
-    const selectedState = stateContainer.options[stateContainer.selectedIndex].value
-    
+  const selectedState = stateContainer.value;
     const cityContainer = document.getElementById("cidadeSelect");
-    const selectedCity = cityContainer.options[cityContainer.selectedIndex].value
-    
+  const selectedCity = cityContainer.value;
     const street = document.getElementById('ruaInput').value;
     const number = document.getElementById('numeroInput').value;
     const structures = handleCheckbox(document.getElementById('estrutura-options'));
     const purposes = handleCheckbox(document.getElementById('finalidade-options'));
     const access = handleRadioButton(document.getElementById('acesso-options'));
-    
 
     const responseCoordinates = await getCoordenatesFromAPI(street, selectedCity, selectedState);
     if (!responseCoordinates) {
@@ -339,7 +335,6 @@ async function sendFunction() {
         return;  
     }
 
-    // Montagem do objeto da requisição
     const formDataJson = {
         "name": parkName,
         "access": access[0],
@@ -354,37 +349,59 @@ async function sendFunction() {
         },
         "structures": structures,
         "purposes": purposes
-    }
+  };
 
-    fetch("http://127.0.0.1:5000/parques/",  {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json' 
-        },
+  const method = editingParkId ? 'PUT' : 'POST';
+  const url = editingParkId ? `http://127.0.0.1:5000/parques/${editingParkId}` : 'http://127.0.0.1:5000/parques/';
+
+  fetch(url, {
+      method,
+      headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(formDataJson)
     }).then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        alert("Parque registrado com sucesso!");
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      alert(editingParkId ? "Parque atualizado com sucesso!" : "Parque registrado com sucesso!");
 
+      // Fecha os modais
         const modal1 = bootstrap.Modal.getInstance(document.getElementById('addParkModal'));
         const modal2 = bootstrap.Modal.getInstance(document.getElementById('addParkModal2'));
         if (modal1) modal1.hide();
         if (modal2) modal2.hide();
 
         document.getElementById("park-form").reset();
+      editingParkId = null; // reseta para próximo uso
 
-        plotCoordinateOnMap([parseFloat(responseCoordinates[0].lat), parseFloat(responseCoordinates[0].lon)])
+      plotCoordinateOnMap([parseFloat(responseCoordinates[0].lat), parseFloat(responseCoordinates[0].lon)]);
+      fetchAllParks(); // atualiza mapa
+      listParks(); // atualiza modal
         return response.json();
-    })
-    .then(responseData => {
-        console.log('Success:', responseData);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+  }).catch(error => console.error('Error:', error));
 }
+
+document.querySelector('button[onclick="registerPark()"]').addEventListener('click', async () => {
+  editingParkId = null;
+  // Limpa campos do modal 1
+  document.getElementById("park-form").reset();
+
+  // Limpa selects
+  const estadoSelect = document.getElementById("estadoSelect");
+  const cidadeSelect = document.getElementById("cidadeSelect");
+  estadoSelect.innerHTML = "";
+  cidadeSelect.innerHTML = "";
+
+  // Carrega estados e checkboxes para modal 2
+  await loadStateOptions();
+  await loadCheckboxOptions();
+
+  // Desmarca todos os checkboxes e radio buttons
+  const allInputs = document.querySelectorAll("#estrutura-options input, #finalidade-options input, #acesso-options input");
+  allInputs.forEach(input => input.checked = false);
+
+  // Abre o modal 1
+  const modal1El = document.getElementById('addParkModal');
+  const modal1Instance = bootstrap.Modal.getInstance(modal1El) || new bootstrap.Modal(modal1El);
+  modal1Instance.show();
+});
 
 function validateModal1() {
   const modal1Fields = document.querySelectorAll("#addParkModal input[required], #addParkModal select[required]");
@@ -422,3 +439,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
   validateModal2();
 });
+
+async function editPark(park) {
+  // Fecha modal de listagem
+  const listModalEl = document.getElementById('listParksModal');
+  const listModalInstance = bootstrap.Modal.getInstance(listModalEl);
+  if (listModalInstance) listModalInstance.hide();
+
+  editingParkId = park.id;
+
+  // Preenche modal 1 campos de texto
+  document.getElementById('parkName').value = park.name;
+  document.getElementById('ruaInput').value = park.street;
+  document.getElementById('numeroInput').value = park.number || "";
+
+  // Carrega estados e seleciona o estado correto
+  await loadStateOptions();
+  const estadoSelect = document.getElementById("estadoSelect");
+  estadoSelect.value = park.state;
+
+  // Carrega cidades do estado selecionado e seleciona a cidade correta
+  await loadCityOptions();
+  const cidadeSelect = document.getElementById("cidadeSelect");
+  cidadeSelect.value = park.city;
+
+  // Carrega opções do modal 2 (checkboxes e radios)
+  await loadCheckboxOptions();
+
+  // Marca checkboxes de estruturas
+  const estruturaOptions = document.querySelectorAll("#estrutura-options input");
+  estruturaOptions.forEach(input => {
+      input.checked = park.structures?.includes(parseInt(input.value)) || false;
+  });
+
+  // Marca checkboxes de finalidades
+  const finalidadeOptions = document.querySelectorAll("#finalidade-options input");
+  finalidadeOptions.forEach(input => {
+      input.checked = park.purposes?.includes(parseInt(input.value)) || false;
+  });
+
+  // Marca radio do tipo de acesso
+  const acessoOptions = document.querySelectorAll("#acesso-options input");
+  acessoOptions.forEach(input => {
+      input.checked = parseInt(input.value) === park.access;
+  });
+
+  validateModal1();
+  validateModal2();
+
+  // Abre o modal 1
+  const modal1El = document.getElementById('addParkModal');
+  const modal1Instance = bootstrap.Modal.getInstance(modal1El) || new bootstrap.Modal(modal1El);
+  modal1Instance.show();
+}
