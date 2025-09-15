@@ -115,8 +115,9 @@ async function listParks() {
 
     allParks = await response.json();
     currentPage = 1;
-    const modal = new bootstrap.Modal(document.getElementById("listParksModal"));
-    modal.show();
+    const modalEl = document.getElementById("listParksModal");
+    const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    modalInstance.show();
 
     renderParks();
     renderPagination();
