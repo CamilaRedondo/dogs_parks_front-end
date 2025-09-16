@@ -128,9 +128,14 @@ async function listParks() {
   }
 }
 
-function filterParks() {
-  alert("Filtrar parques");
+async function filterParks() {
+  await loadCheckboxOptions("filter-");
+  await loadStateOptionsFilter(); // vamos criar essa versão
+  const modalEl = document.getElementById("filterParksModal");
+  const modalInstance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+  modalInstance.show();
 }
+
 
 function renderCheckboxGroup(containerId, name, options) {
     const container = document.getElementById(containerId);
@@ -151,7 +156,7 @@ function renderCheckboxGroup(containerId, name, options) {
     }
 }
 
-async function loadCheckboxOptions() {
+async function loadCheckboxOptions(prefix = "") {
   try {
     console.log('Carregando opções...');
     const [estruturaData, finalidadeData, acessoData] = await Promise.all([
@@ -164,16 +169,19 @@ async function loadCheckboxOptions() {
     const finalidade = finalidadeData.map(item => item.name);
     const acesso = acessoData.map(item => item.name);
 
-    renderCheckboxGroup("estrutura-options", "estrutura", estrutura);
-    renderCheckboxGroup("finalidade-options", "finalidade", finalidade);
-    renderCheckboxGroup("acesso-options", "acesso", acesso);
+    renderCheckboxGroup(`${prefix}estrutura-options`, "estrutura", estrutura);
+    renderCheckboxGroup(`${prefix}finalidade-options`, "finalidade", finalidade);
+    renderCheckboxGroup(`${prefix}acesso-options`, "acesso", acesso);
 
+    // Só valida modal 2 se for o modal de cadastro
+    if (prefix === "") {
     const modal2Fields = document.querySelectorAll("#estrutura-options input, #finalidade-options input, #acesso-options input");
     modal2Fields.forEach(field => {
         field.addEventListener("change", validateModal2);
     });
 
     validateModal2();
+    }
   } catch (err) {
       console.error("Erro ao buscar opções:", err);
   }
@@ -522,4 +530,92 @@ async function editPark(park) {
   const modal1El = document.getElementById('addParkModal');
   const modal1Instance = bootstrap.Modal.getInstance(modal1El) || new bootstrap.Modal(modal1El);
   modal1Instance.show();
+}
+
+async function loadStateOptionsFilter() {
+  const response = await getStateFromAPI();
+  const container = document.getElementById("filterEstado");
+  container.innerHTML = `<option value="">Selecione o estado</option>` + response.map((option) => `
+     <option value="${option.sigla}">${option.nome}</option>
+  `).join('');
+}
+
+async function loadFilterCities() {
+  const stateContainer = document.getElementById("filterEstado");
+  const selectedState = stateContainer.value;
+  if (!selectedState) return;
+
+  const response = await getCityFromAPI(selectedState);
+  const cityContainer = document.getElementById("filterCidade");
+  cityContainer.innerHTML = `<option value="">Selecione a cidade</option>` + response.map((option) => `
+     <option value="${option.nome}">${option.nome}</option>
+  `).join('');
+}
+
+function applyFilters() {
+  const estado = document.getElementById("filterEstado").value;
+  const cidade = document.getElementById("filterCidade").value;
+
+  const estruturas = Array.from(document.querySelectorAll('#filter-estrutura-options input[type="checkbox"]:checked')).map(cb => parseInt(cb.value));
+  const finalidades = Array.from(document.querySelectorAll('#filter-finalidade-options input[type="checkbox"]:checked')).map(cb => parseInt(cb.value));
+  const acesso = Array.from(document.querySelectorAll('#filter-acesso-options input[type="radio"]:checked')).map(rb => parseInt(rb.value));
+
+  if (window.parksLayer) {
+    window.parksLayer.clearLayers();
+  } else {
+    window.parksLayer = L.layerGroup().addTo(map);
+  }
+
+  allParks.forEach(park => {
+    let atende = true;
+
+    if (estado && park.state !== estado) atende = false;
+    if (cidade && park.city !== cidade) atende = false;
+
+    if (estruturas.length > 0 && (!park.structures || !estruturas.every(e => park.structures.includes(e)))) {
+      atende = false;
+    }
+
+    if (finalidades.length > 0 && (!park.purposes || !finalidades.every(f => park.purposes.includes(f)))) {
+      atende = false;
+    }
+
+    if (acesso.length > 0 && (!park.access || acesso[0] !== park.access)) {
+      atende = false;
+    }
+
+    if (atende && park.lat && park.long) {
+      const marker = L.marker([park.lat, park.long]).addTo(window.parksLayer);
+      marker.bindPopup(`
+        <b>${park.name}</b><br>
+        ${park.street}, ${park.city} - ${park.state}<br>
+        <i>${park.access_description}</i><br>
+        Estruturas: ${park.structures}<br>
+        Finalidades: ${park.purposes}
+      `);
+    }
+  });
+
+  const modal = bootstrap.Modal.getInstance(document.getElementById('filterParksModal'));
+  if (modal) modal.hide();
+  document.getElementById("clearFiltersBtn").classList.remove("d-none");
+  document.getElementById("filterBtn").classList.add("d-none");
+}
+
+function clearFilters() {
+  // Reset selects
+  document.getElementById("filterEstado").value = "";
+  document.getElementById("filterCidade").value = "";
+
+  // Reset checkboxes e radios
+  document.querySelectorAll('#filter-estrutura-options input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('#filter-finalidade-options input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.querySelectorAll('#filter-acesso-options input[type="radio"]').forEach(rb => rb.checked = false);
+
+  // Recarregar todos os parques
+  fetchAllParks();
+
+  // Esconder o botão novamente
+  document.getElementById("clearFiltersBtn").classList.add("d-none");
+  document.getElementById("filterBtn").classList.remove("d-none");
 }
