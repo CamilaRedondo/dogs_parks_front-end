@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <base target="_top">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
-    <title>Document</title>
-</head>
-<body>
+  <head>
+      <base target="_top">
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link rel="stylesheet" href="style.css">
+      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+      <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+      <title>Document</title>
+  </head>
+  <body>
     <div id="map-container">
         <div id="map"></div>
         <div id="map-container-menu">
@@ -22,8 +22,11 @@
             <button type="button" class="btn map-menu-button" data-bs-target="#listParksModal" onclick="listParks()">
                 <i class="bi bi-card-list fs-4"></i>
             </button>
-            <button type="button" class="btn map-menu-button" onclick="filterParks()">
+            <button id="filterBtn" type="button" class="btn map-menu-button" data-bs-target="#filterParksModal" onclick="filterParks()">
                 <i class="bi bi-funnel fs-5"></i>
+            </button>
+            <button id="clearFiltersBtn" type="button" class="btn map-menu-button d-none" onclick="clearFilters()">
+              <i class="bi bi-x-circle fs-5"></i>
             </button>
         </div>
     </div>
@@ -121,7 +124,49 @@
     </div>
 
     <!-- Filtrando parque -->
+    <div class="modal fade" id="filterParksModal" aria-labelledby="filterParksModalLabel" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="filterParksModalLabel">Filtrar Parques</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+          </div>
+
+          <div class="modal-body">
+            <!-- Estados -->
+            <div class="mb-3">
+              <label for="filterEstado" class="form-label">Estado</label>
+              <select id="filterEstado" class="form-select" onchange="loadFilterCities()">
+                <option value="">Selecione o estado</option>
+              </select>
+            </div>
+
+            <!-- Cidades -->
+            <div class="mb-3">
+              <label for="filterCidade" class="form-label">Cidade</label>
+              <select id="filterCidade" class="form-select">
+                <option value="">Selecione a cidade</option>
+              </select>
+            </div>
+
+            <!-- Checkboxes -->
+            <h7>Características</h7>
+            <div id="filter-estrutura-options"></div>
+            <br>
+            <h7>Finalidade</h7>
+            <div id="filter-finalidade-options"></div>
+            <br>
+            <h7>Acesso</h7>
+            <div id="filter-acesso-options"></div>
+
+          <div class="modal-footer d-flex justify-content-between">
+            <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar Filtros</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <script src="./script.js"></script>
-</body>
+  </body>
 </html>
