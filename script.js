@@ -158,7 +158,6 @@ function renderCheckboxGroup(containerId, name, options) {
 
 async function loadCheckboxOptions(prefix = "") {
   try {
-    console.log('Carregando opções...');
     const [estruturaData, finalidadeData, acessoData] = await Promise.all([
         fetch('http://127.0.0.1:5000/estruturas/').then(r => r.json()),
         fetch('http://127.0.0.1:5000/finalidades/').then(r => r.json()),
@@ -175,12 +174,11 @@ async function loadCheckboxOptions(prefix = "") {
 
     // Só valida modal 2 se for o modal de cadastro
     if (prefix === "") {
-    const modal2Fields = document.querySelectorAll("#estrutura-options input, #finalidade-options input, #acesso-options input");
-    modal2Fields.forEach(field => {
-        field.addEventListener("change", validateModal2);
-    });
-
-    validateModal2();
+      const modal2Fields = document.querySelectorAll("#estrutura-options input, #finalidade-options input, #acesso-options input");
+      modal2Fields.forEach(field => {
+          field.addEventListener("change", validateModal2);
+      });
+      validateModal2();
     }
   } catch (err) {
       console.error("Erro ao buscar opções:", err);
@@ -318,36 +316,36 @@ function plotCoordinateOnMap(coordinates) {
 }
 
 async function sendFunction() {
-    const estruturaOptions = document.querySelectorAll("#estrutura-options input[type='checkbox']:checked");
-    const finalidadeOptions = document.querySelectorAll("#finalidade-options input[type='checkbox']:checked");
-    const acessoOptions = document.querySelectorAll("#acesso-options input[type='radio']:checked");
+  const estruturaOptions = document.querySelectorAll("#estrutura-options input[type='checkbox']:checked");
+  const finalidadeOptions = document.querySelectorAll("#finalidade-options input[type='checkbox']:checked");
+  const acessoOptions = document.querySelectorAll("#acesso-options input[type='radio']:checked");
 
-    if (estruturaOptions.length === 0 || finalidadeOptions.length === 0 || acessoOptions.length === 0) {
-        alert("Por favor, preencha todos os campos obrigatórios antes de salvar.");
-        return;
-    }
-    
-    const parkName = document.getElementById('parkName').value;
-    const stateContainer = document.getElementById("estadoSelect");
+  if (estruturaOptions.length === 0 || finalidadeOptions.length === 0 || acessoOptions.length === 0) {
+      alert("Por favor, preencha todos os campos obrigatórios antes de salvar.");
+      return;
+  }
+
+  const parkName = document.getElementById('parkName').value;
+  const stateContainer = document.getElementById("estadoSelect");
   const selectedState = stateContainer.value;
-    const cityContainer = document.getElementById("cidadeSelect");
+  const cityContainer = document.getElementById("cidadeSelect");
   const selectedCity = cityContainer.value;
-    const street = document.getElementById('ruaInput').value;
-    const number = document.getElementById('numeroInput').value;
-    const structures = handleCheckbox(document.getElementById('estrutura-options'));
-    const purposes = handleCheckbox(document.getElementById('finalidade-options'));
-    const access = handleRadioButton(document.getElementById('acesso-options'));
+  const street = document.getElementById('ruaInput').value;
+  const number = document.getElementById('numeroInput').value;
+  const structures = handleCheckbox(document.getElementById('estrutura-options'));
+  const purposes = handleCheckbox(document.getElementById('finalidade-options'));
+  const access = handleRadioButton(document.getElementById('acesso-options'));
 
-    const responseCoordinates = await getCoordenatesFromAPI(street, selectedCity, selectedState);
-    if (!responseCoordinates) {
-        alert("Não encontrou endereço!");
-        return;  
-    }
+  const responseCoordinates = await getCoordenatesFromAPI(street, selectedCity, selectedState);
+  if (!responseCoordinates) {
+      alert("Não encontrou endereço!");
+      return;  
+  }
 
-    const formDataJson = {
-        "name": parkName,
-        "access": access[0],
-        "address": {
+  const formDataJson = {
+      "name": parkName,
+      "access": access[0],
+      "address": {
           "street": street,
           "city": selectedCity,
           "state": selectedState,
@@ -355,9 +353,9 @@ async function sendFunction() {
           "country": "Brasil",
           "lat": responseCoordinates[0].lat,
           "long": responseCoordinates[0].lon
-        },
-        "structures": structures,
-        "purposes": purposes
+      },
+      "structures": structures,
+      "purposes": purposes
   };
 
   const method = editingParkId ? 'PUT' : 'POST';
@@ -366,24 +364,24 @@ async function sendFunction() {
   fetch(url, {
       method,
       headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(formDataJson)
-    }).then(response => {
+      body: JSON.stringify(formDataJson)
+  }).then(response => {
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       alert(editingParkId ? "Parque atualizado com sucesso!" : "Parque registrado com sucesso!");
-
+      
       // Fecha os modais
-        const modal1 = bootstrap.Modal.getInstance(document.getElementById('addParkModal'));
-        const modal2 = bootstrap.Modal.getInstance(document.getElementById('addParkModal2'));
-        if (modal1) modal1.hide();
-        if (modal2) modal2.hide();
+      const modal1 = bootstrap.Modal.getInstance(document.getElementById('addParkModal'));
+      const modal2 = bootstrap.Modal.getInstance(document.getElementById('addParkModal2'));
+      if (modal1) modal1.hide();
+      if (modal2) modal2.hide();
 
-        document.getElementById("park-form").reset();
+      document.getElementById("park-form").reset();
       editingParkId = null; // reseta para próximo uso
 
       plotCoordinateOnMap([parseFloat(responseCoordinates[0].lat), parseFloat(responseCoordinates[0].lon)]);
       fetchAllParks(); // atualiza mapa
       listParks(); // atualiza modal
-        return response.json();
+      return response.json();
   }).catch(error => console.error('Error:', error));
 }
 
