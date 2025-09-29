@@ -18,8 +18,8 @@ Siga as etapas abaixo para configurar o ambiente local e executar o projeto:
 Clone este repositório para o seu ambiente local:
 
 ```bash
-git clone https://github.com/seu-usuario/seu-repositorio.git
-cd seu-repositorio
+git clone https://github.com/CamilaRedondo/dogs_parks_front-end
+cd dogs_parks_front-end
 ```
 
 ### 2. Configurar o Servidor Backend 
@@ -47,6 +47,11 @@ Se estiver usando o Live Server, clique com o botão direito no arquivo index.ht
 - APIs públicas do IBGE e OpenStreetMap (para dados de localização e geocodificação)
 
 ## 📂 Estrutura do Projeto
+
+- index.html: Arquivo principal da interface do usuário.
+- style.css: Estilização personalizada do projeto.
+- script.js: Lógica do frontend, incluindo integração com o - backend e manipulação do mapa.
+- README.md: Documentação do projeto.
 
 ## 📧 Contato
 
